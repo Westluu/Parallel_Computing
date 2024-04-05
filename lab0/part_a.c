@@ -19,13 +19,14 @@ void *addition(void *arg)
     {
         for (j = 0; j < MAX_SIZE; j++)
         {
+
             sum[i][j] = mat_A[i][j] + mat_B[i][j];
         }
     }
     return NULL;
 }
 
-void addSequential()
+void addSeq()
 {
     for (int i = 0; i < MAX_SIZE; i++)
     {
@@ -60,7 +61,7 @@ int main(int Argc, char *Args[])
     // Sequential Computation Timing
     struct timespec beginSeq, endSeq;
     clock_gettime(CLOCK_MONOTONIC, &beginSeq);
-    addSequential(); // Sequential Computation
+    addSeq(); // Sequential Computation
     clock_gettime(CLOCK_MONOTONIC, &endSeq);
     double elapsedSeq = endSeq.tv_sec - beginSeq.tv_sec;
     elapsedSeq += (endSeq.tv_nsec - beginSeq.tv_nsec) / 1000000000.0;
