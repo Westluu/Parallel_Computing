@@ -4,63 +4,67 @@
 #include <pthread.h>
 #include <stdint.h>
 
-#define CORE 6
+#define CORE 4
 #define MAX_SIZE 1000
 pthread_t thread[CORE];
 float mat_A[MAX_SIZE][MAX_SIZE], mat_B[MAX_SIZE][MAX_SIZE], result[MAX_SIZE][MAX_SIZE], resultSequential[MAX_SIZE][MAX_SIZE];
-
-// void *p_matvec(void *id)
-// {
-//     int threadID = (intptr_t)id;
-//     int i, j;
-//     int local_m = MAX_SIZE / CORE;
-//     int first_row = threadID * local_m;
-//     int last_row = first_row + local_m;
-//     for (i = first_row; i < last_row; i++)
-//     {
-//         result[i] = 0;
-//         for (j = 0; j < MAX_SIZE; j++)
-//             result[i] += mat_A[i][j] * vector[j];
-//     }
-//     return NULL;
-// }
 
 // Sequential Matrix Multiplication Implementation
 // resulting matrix size is A * B (row of A x col of B)
 void MMSeq()
 {
     int row, col, i;
-    for (int row = 0; row < MAX_SIZE; row++)
+    for (row = 0; row < MAX_SIZE; row++)
     {
-        for (int col = 0; col < MAX_SIZE; col++)
+        for (col = 0; col < MAX_SIZE; col++)
         {
             float sum = 0;
-            for (int i = 0; i < MAX_SIZE; i++)
+            for (i = 0; i < MAX_SIZE; i++)
             {
-                sum += *((float *)mat_A + (row * MAX_SIZE + i)) * *((float *)mat_B + (i * MAX_SIZE + col));
-
-                //  mat_A(row * MAX_SIZE + i] * mat_B[i * MAX_SIZE + col];
+                sum += mat_A[row][i] * mat_B[i][col];
             }
-
-            *((float *)resultSequential + (row * MAX_SIZE + col)) = sum;
-            // resultSequential[row * MAX_SIZE + col] = sum;
+            resultSequential[row][col] = sum;
         }
     }
 }
 
+// 1D Array Representation
 void *MM(void *id)
 {
     int core = (intptr_t)id;
-    for (int target = core * MAX_SIZE * MAX_SIZE / CORE; target < (core + 1) * MAX_SIZE * MAX_SIZE / CORE; target++) // num of cells to fill
+    for (int target = core * MAX_SIZE * MAX_SIZE / CORE; target < (core + 1) * MAX_SIZE * MAX_SIZE / CORE; target++)
     {
         float sum = 0;
-        int row = target % MAX_SIZE;
-        int col = target / MAX_SIZE;
-        for (int i = 0; i < MAX_SIZE; i++) // slider down the vector that needs to be caculated
+        int row = target / MAX_SIZE;
+        int col = target % MAX_SIZE;
+        for (int i = 0; i < MAX_SIZE; i++)
         {
-            sum += *((float *)mat_A + (row * MAX_SIZE + i)) * *((float *)mat_B + (col + i * MAX_SIZE));
+            float a = *((float *)mat_A + row * MAX_SIZE + i);
+            float b = *((float *)mat_B + i * MAX_SIZE + col);
+            sum += a * b;
         }
-        *((float *)result + (row * MAX_SIZE + col)) = sum;
+        *((float *)result + row * MAX_SIZE + col) = sum;
+    }
+    return NULL;
+}
+
+// 2D array representation
+void *MM2(void *id)
+{
+    intptr_t core = (intptr_t)id;
+    int start = core * MAX_SIZE * MAX_SIZE / CORE;
+    int end = (core + 1) * MAX_SIZE * MAX_SIZE / CORE;
+
+    for (int target = start; target < end; target++)
+    {
+        int row = target / MAX_SIZE;
+        int col = target % MAX_SIZE;
+        float sum = 0;
+        for (int i = 0; i < MAX_SIZE; i++)
+        {
+            sum += mat_A[row][i] * mat_B[i][col];
+        }
+        result[row][col] = sum;
     }
     return NULL;
 }
@@ -84,6 +88,9 @@ int main(int Argc, char *Args[])
     int error = 0;
 
     gen_matrix();
+    // initialize_matrices();
+
+    printf("NUMBER OF CORES: %d\n", CORE);
 
     // Sequential Computation Timing
     struct timespec beginSeq, endSeq;

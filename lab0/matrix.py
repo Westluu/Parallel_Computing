@@ -1,41 +1,36 @@
 import random
 
-n = 1000 #1000
+n = 2  # You can change this to any size you want, for example, 1000 for a 1000x1000 matrix.
 
-matrix1s = "{"
 matrix1 = []
-matrix2s = "{"
 matrix2 = []
-matrix3s = "{"
-matrix3 = []
+result_matrix = []
 
+# Generating the first matrix with random values
 for _ in range(n):
-    row = []
-    for _ in range(n):
-        row.append(random.random())
-    matrix1s += "{" + str(row)[1:-1] + "}, "
+    row = [random.random() for _ in range(n)]
     matrix1.append(row)
-matrix1s = matrix1s[:-2] + "}"
 
+# Generating the second matrix with random values
 for _ in range(n):
-    row = []
-    for _ in range(n):
-        row.append(random.random())
-    matrix2s += "{" + str(row)[1:-1] + "}, "
+    row = [random.random() for _ in range(n)]
     matrix2.append(row)
-matrix2s = matrix2s[:-2] + "}"
 
+# Performing matrix multiplication
 for i in range(n):
-    row = []
+    result_row = []
     for j in range(n):
-        row.append(matrix1[i][j] + matrix2[i][j])
-    matrix3s += "{" + str(row)[1:-1] + "}, "
-matrix3s = matrix3s[:-2] + "}"
+        product_sum = sum(matrix1[i][k] * matrix2[k][j] for k in range(n))
+        result_row.append(product_sum)
+    result_matrix.append(result_row)
 
+# Formatting the matrices as strings for printing
+def matrix_to_string(matrix):
+    return "{" + ", ".join("{" + ", ".join(f"{val:.4f}" for val in row) + "}" for row in matrix) + "}"
 
-print("First:")
-print(matrix1s)
-print("Second:")
-print(matrix2s)
-print("Sum:")
-print(matrix3s)
+print("First Matrix:")
+print(matrix_to_string(matrix1))
+print("Second Matrix:")
+print(matrix_to_string(matrix2))
+print("Result of Multiplication:")
+print(matrix_to_string(result_matrix))

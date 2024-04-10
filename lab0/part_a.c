@@ -58,6 +58,8 @@ int main(int Argc, char *Args[])
     // generate 1000 size matrix for A and B
     gen_matrix();
 
+    printf("NUMBER OF CORES: %d\n", CORE);
+
     // Sequential Computation Timing
     struct timespec beginSeq, endSeq;
     clock_gettime(CLOCK_MONOTONIC, &beginSeq);
@@ -70,7 +72,6 @@ int main(int Argc, char *Args[])
     // Parallel Computation Timing
     struct timespec beginT, endT;
     clock_gettime(CLOCK_MONOTONIC, &beginT);
-
     for (i = 0; i < CORE; i++)
     {
         // pthread_create(&thread[i],NULL,&addition,(void *)(unsigned long long)i);
@@ -80,7 +81,6 @@ int main(int Argc, char *Args[])
     {
         pthread_join(thread[i], NULL);
     }
-
     clock_gettime(CLOCK_MONOTONIC, &endT);
     double elapsedT = endT.tv_sec - beginT.tv_sec;
     elapsedT += (endT.tv_nsec - beginT.tv_nsec) / 1000000000.0;
