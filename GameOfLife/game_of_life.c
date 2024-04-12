@@ -11,9 +11,11 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
+#include <omp.h>
 
-#define GRID_SIZE 5
-#define NUM_OF_ITERATIONS 14
+#define GRID_SIZE 20
+#define NUM_OF_ITERATIONS 100
 
 #define TRUE 1
 #define FALSE 0
@@ -28,6 +30,22 @@ void gen_grid(uint8_t (*p_grid)[GRID_SIZE])
             p_grid[i][j] = (uint8_t)(rand() % 2);
         }
     }
+}
+
+void glider_gen(uint8_t (*p_grid)[GRID_SIZE])
+{
+    for (int i = 0; i < GRID_SIZE; i++)
+    {
+        for (int j = 0; j < GRID_SIZE; j++)
+        {
+            p_grid[i][j] = FALSE;
+        }
+    }
+    p_grid[0][0] = TRUE;
+    p_grid[0][2] = TRUE;
+    p_grid[1][1] = TRUE;
+    p_grid[1][2] = TRUE;
+    p_grid[2][1] = TRUE;
 }
 
 
@@ -48,6 +66,7 @@ uint8_t countNeighbors(int i, int j, uint8_t (*p_grid)[GRID_SIZE])
 void calculateGrid(uint8_t (*c_grid)[GRID_SIZE], uint8_t (*p_grid)[GRID_SIZE])
 // Takes in previous grid and populates entire current grid off of it.
 {
+#pragma omp parallel for num_threads(8) //private(i,j)
     for (int i = 0; i < GRID_SIZE; i++)
     {
         for (int j = 0; j < GRID_SIZE; j++)
@@ -103,16 +122,17 @@ int main()
 
     // initalizes the grids
     gen_grid(*p_grid);
+    // glider_gen(*p_grid);
 
-    printGrid(*p_grid);
-    printf("---------------------------------\n");
-    
-    // loops game based on interations
+    double start;
+    double end;
+    start = omp_get_wtime();   
+
     for (int i = 0; i < NUM_OF_ITERATIONS; i++)
     {
         calculateGrid(*c_grid, *p_grid);
-        printGrid(*c_grid);
-        printf("---------------------------------\n");
+        // printGrid(*c_grid);
+        // printf("---------------------------------\n");
         // printf("%d\n", (int)*c_grid);
         // printf("%d\n", (int)*p_grid);
         // swapGrids(c_grid, p_grid);
@@ -120,4 +140,8 @@ int main()
         p_grid = c_grid;
         c_grid = temp;
     }
+    // printGrid(*c_grid);
+    
+    end = omp_get_wtime();
+    printf("Work took %f seconds\n", end - start);
 }
