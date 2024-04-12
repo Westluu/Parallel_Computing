@@ -1,0 +1,37 @@
+void swapGrids(uint8_t (*array1)[GRID_SIZE], uint8_t (*array2)[GRID_SIZE])
+{
+    uint8_t(*temp)[GRID_SIZE] = array1;
+    array1 = array2;
+    array2 = temp;
+}
+
+int main()
+{
+    // uint8_t temp[GRID_SIZE][GRID_SIZE], c_grid[GRID_SIZE][GRID_SIZE], p_grid[GRID_SIZE][GRID_SIZE];
+    uint8_t c_grid[GRID_SIZE][GRID_SIZE], p_grid[GRID_SIZE][GRID_SIZE];
+
+    // uint8_t (*temp)[GRID_SIZE] = NULL;
+
+    // uint8_t(*current_grid)[GRID_SIZE] = c_grid;
+    // uint8_t(*previous_grid)[GRID_SIZE] = p_grid;
+
+    // initalizes the grids
+    gen_grid(p_grid);
+
+    printGrid(p_grid);
+    printf("---------------------------------\n");
+
+    // loops game based on interations
+    for (int i = 0; i < NUM_OF_ITERATIONS; i++)
+    {
+        calculateGrid(c_grid, p_grid);
+        printGrid(c_grid);
+        printf("---------------------------------\n");
+        printf("%d\n" ,(int) c_grid);
+        printf("%d\n" ,(int) p_grid);
+        swapGrids(c_grid, p_grid);
+        // temp = p_grid;
+        // p_grid = c_grid;
+        // c_grid = temp;
+    }
+}
