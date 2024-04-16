@@ -7,15 +7,15 @@
 
 // 0 dead, 1 alive, for displaying uint8_t
 
-// #include <omp.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <omp.h>
 
-#define GRID_SIZE 20
-#define NUM_OF_ITERATIONS 100
+#define GRID_SIZE 1000
+#define NUM_OF_ITERATIONS 1000
+#define THREADS 4
 
 #define TRUE 1
 #define FALSE 0
@@ -66,17 +66,13 @@ uint8_t countNeighbors(int i, int j, uint8_t (*p_grid)[GRID_SIZE])
 void calculateGrid(uint8_t (*c_grid)[GRID_SIZE], uint8_t (*p_grid)[GRID_SIZE])
 // Takes in previous grid and populates entire current grid off of it.
 {
-#pragma omp parallel for num_threads(8) //private(i,j)
+#pragma omp parallel for num_threads(THREADS) 
     for (int i = 0; i < GRID_SIZE; i++)
     {
         for (int j = 0; j < GRID_SIZE; j++)
         {
             switch (countNeighbors(i, j, p_grid))
             {
-            // case 0:
-            // case 1:
-            //     current_grid[i][j] = FALSE;
-            //     break;
             case 2:
                 c_grid[i][j] = p_grid[i][j];
                 break;
