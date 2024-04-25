@@ -6,27 +6,29 @@
 #include <string.h>
 #include <omp.h>
 
-#define NUM_THREADS 2
-#define N 10000000
-// #define N 100000
+#define NUM_THREADS 4
+// #define N 10000000
+#define N 256
 
 struct Point
 {
 	int val;	 // Group of point
-	double x, y;	 // Co-ordinate of point
+	int x, y;	 // Co-ordinate of point
 	double distance; // Distance from test point
 } typedef Point;
 
 
-Point arr[N];
+Point A[N][N];
 
 
 void gen_array() {
 	#pragma omp parallel for num_threads(NUM_THREADS)
 	for (int i = 0; i < N; i++) {
-		arr[i].x = (double)rand() / RAND_MAX;
-		arr[i].y = (double)rand() / RAND_MAX;
-		arr[i].val = rand() % 2;
+		for (int j = 0; j < N; j++) {
+			A[i][j].x = i;
+			A[i][j].y = j;
+			A[i][j].val = rand() % 256;
+		}
 	}
 }
 
@@ -134,7 +136,7 @@ void mergeSortHelpPrl(Point arr[], int size, int depth) {
 }
 
 
-void mergeSort(Point arr[], int size) {
+void mergeSort(Point *arr, int size) {
 	//Main merge sort call, call this and will take care of everything
 	int depth = 0;
 	uint8_t x = NUM_THREADS;
@@ -147,12 +149,21 @@ void calc_distance(Point p) {
 	// Fill distances of all points from p
 	#pragma omp parallel for num_threads(NUM_THREADS) 
 	for (int i = 0; i < N; i++) {
-		arr[i].distance =
-			sqrt((arr[i].x - p.x) * (arr[i].x - p.x) +
-				(arr[i].y - p.y) * (arr[i].y - p.y));
+		A[i]->distance =
+			sqrt((double)((A[i]->x - p.x) * (A[i]->x - p.x) +
+				(A[i]->y - p.y) * (A[i]->y - p.y)));
 	}
 }
 
+int get_max(uint8_t a[]){
+	uint8_t max = 0;
+	for (int i=0; i < N; i++) {
+		if (a[i] > max){
+			max = a[i];
+		}
+	}
+	return max;
+}
 
 // This function finds classification of point p using
 // k nearest neighbour algorithm. It assumes only two
@@ -172,7 +183,7 @@ int classifyAPoint(Point arr[], int n, int k, Point p)
 	// putchar('\n');
 
 	calc_end = omp_get_wtime();
-	mergeSort(arr, n);
+	mergeSort(arr, n * n);
 	// printf("MERGE DONE\n");
 
 	// for (int i=0; i < N; i++) {
@@ -190,15 +201,15 @@ int classifyAPoint(Point arr[], int n, int k, Point p)
 	
 	merge_end = omp_get_wtime();
 	
-	int freq1 = 0;	 // Frequency of group 0
-	int freq2 = 0;	 // Frequency of group 1
-	#pragma omp parallel for num_threads(NUM_THREADS) reduction(+: freq1, freq2)
+	uint8_t color[N] = {0};
+	#pragma omp parallel for num_threads(NUM_THREADS) reduction(+: color)
 	for (int i = 0; i < k; i++)
 	{
-		if (arr[i].val == 0)
-			freq1++;
-		else if (arr[i].val == 1)
-			freq2++;
+		color[arr[i].val]++;
+		// if (arr[i].val == 0)
+		// 	freq1++;
+		// else if (arr[i].val == 1)
+		// 	freq2++;
 	}
 
 	// printf("PARALLEL freq1: %d\n", freq1);
@@ -221,8 +232,8 @@ int classifyAPoint(Point arr[], int n, int k, Point p)
 
 	// printf("SEQ freq1: %d\n", freq1);
 	// printf("SEQ freq2: %d\n", freq2);
-	
-	return (freq1 > freq2 ? 0 : 1);
+	// return (freq1 > freq2 ? 0 : 1);
+	return get_max(color);
 }
 
 // Driver code
@@ -243,6 +254,6 @@ int main()
 	// Parameter to decide group of the testing point
 	int k = 50;
 	printf ("The value classified to unknown point"
-			" is %d.\n", classifyAPoint(arr, N, k, p));
+			" is %d.\n", classifyAPoint(A, N, k, p));
 	return 0;
 }
